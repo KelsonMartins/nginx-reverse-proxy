@@ -1,0 +1,37 @@
+version: '2'
+
+services:
+  whilefly_wp:
+    container_name: production_wp
+    image: nginx:latest
+    volumes:
+      - ./html:/var/www/html
+      - ./Docker/logs:/logs
+      - ./Docker/database:/docker-entrypoint-initdb.d
+      - ./db_data:/var/lib/mysql
+    user: root
+    restart: always
+    ports:
+      - 8081:80
+    environment:
+      MYSQL_ROOT_PASSWORD: 'your_mysql_root_password'
+      MYSQL_DATABASE: 'production_db_name'
+      MYSQL_USER: 'production_admin_user'
+      MYSQL_PASSWORD: 'your_mysql_user_password'
+  nginx:
+    image: nginx:latest
+    container_name: production_nginx
+    volumes:
+      - ./reverse_proxy.conf:/etc/nginx/conf.d/default.conf
+      - ./proxy.conf:/etc/nginx/includes/proxy.conf
+      - ./ssl.conf:/etc/nginx/includes/ssl.conf
+      - ./certs/your_website_domain.pem:/etc/nginx/cert/your_website_domain.pem
+      - ./certs/your_website_domain.key:/etc/nginx/cert/your_website_domain.key
+      - ./certs/your_website_domain.crt:/etc/nginx/cert/your_website_domain.crt
+    ports:
+      - 8080:8080
+      - 443:443
+    links:
+     - whilefly_wp
+volumes:
+  db_data:
